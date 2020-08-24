@@ -10,7 +10,6 @@
             <div class="col-md-12">
                 <ul class="breadcrumb-tree">
                     <li><a href="/">Home</a></li>
-                    <li><a href="#">Sub-Categories</a></li>
                 </ul>
             </div>
         </div>
@@ -21,15 +20,22 @@
 <!-- /BREADCRUMB -->
 <!-- SECTION -->
 <div class="section">
+    <center>
+        <h2>Hotdeals</h2>
+    </center>
     <!-- container -->
     <div class="container">
         <!-- row -->
         <div class="row">
-            <h1>{{categories.title}}</h1>
+            <!-- STORE -->
+            <div id="store" class="col-md-9">
+                <!-- store top filter -->
+            </div>
+            <!-- /store top filter -->
             <!-- store products -->
             <div class="row">
                 <!-- product -->
-                {% for cat in subcategory_item %}
+                {% for cat in hot_items %}
                 <div class="col-md-4 col-xs-6">
                     <div class="product">
                         <center>

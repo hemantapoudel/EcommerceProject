@@ -7,13 +7,19 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.core.mail import EmailMessage
+from django.contrib.auth.decorators import login_required
+
 # Create your views here.
 
 class BaseView(View):
     template_view={}
     template_view['categories']=Category.objects.all()
     template_view['subcategories']=Subcategory.objects.all()
-
+    template_view['smartphone_sub']=Subcategory.objects.filter(category_id=1)
+    template_view['camera_sub']=Subcategory.objects.filter(category_id=2)
+    template_view['laptop_sub']=Subcategory.objects.filter(category_id=3)
+    template_view['accessories_sub']=Subcategory.objects.filter(category_id=4)
+    
 class HomeView(BaseView):
     def get(self,request):
         self.template_view['items']=Item.objects.filter(front = True)
@@ -44,6 +50,11 @@ class SubcategoryView(BaseView):
         subcategory_id = Subcategory.objects.get(slug=slug).id
         self.template_view['subcategory_item']=Item.objects.filter(subcategory_id=subcategory_id)
         return render(request,'subcategory.html',self.template_view)
+
+class Hotdeal(BaseView):
+    def get(self,request):
+        self.template_view['hot_items']=Item.objects.filter(hotdeal=True)
+        return render(request,'hotdeal.html',self.template_view)
 
 
 def signup(request):
@@ -111,6 +122,125 @@ def Contactus(request):
         email.send()
     return render(request,"contact.html")
     
+def cart(request):
+    # views={}
+    current_user=request.user
+    # views['carts']=Cart.objects.filter(checkout=False,user_id=current_user.id)
+    carts=Cart.objects.filter(checkout=False,user_id=current_user.id)
+    total=0
+    for i in carts:
+        total += i.price*i.quantity
+    views={'carts':carts,'total':total}
+    return render(request,'cart.html',views)
+@login_required
+
+def add_to_cart(request):
+    if request.method=='POST':
+        slug=request.POST['slug']
+        title=request.POST['title']
+        image=request.POST['image']
+        description=request.POST['description']
+        price=request.POST['price']
+
+        if Cart.objects.filter(slug=slug).exists():
+            quantity=Cart.objects.get(slug=slug).quantity
+            Cart.objects.filter(slug=slug).update(quantity=quantity+1)
+            return redirect('home:cart')
+        else:
+            my_cart=Cart.objects.create(
+                user = request.user,
+                slug = slug,
+                title=title,
+                image=image,
+                description=description,
+                price=price
+            )
+            my_cart.save()
+            return redirect('home:cart')
+    else:
+        return redirect('/')
+
+def delete_cart(request,slug):
+    if Cart.objects.filter(slug=slug).exists():
+        Cart.objects.filter(slug=slug).delete()
+        return redirect('/cart')
+    else:
+        return redirect('/cart')
+#*************************************************************************************
+def wish(request):
+    views={}
+    views['wishs']=Wish.objects.filter(user=request.user)
+    return render(request,'wishlist.html',views)
+
+@login_required
+
+def add_to_wish(request):
+    if request.method=='POST':
+        slug=request.POST['slug']
+        title=request.POST['title']
+        image=request.POST['image']
+        description=request.POST['description']
+        price=request.POST['price']
+
+        if Wish.objects.filter(slug=slug).exists():
+            messages.error(request,'already in list')
+            return redirect('home:wish')
+        else:
+            my_wish=Wish.objects.create(
+                user = request.user,
+                slug = slug,
+                title= title,
+                image=image,
+                description=description,
+                price=price
+            )
+            my_wish.save()
+            return redirect('home:wish')
+    else:
+        return redirect('/')
+
+def delete_wish(request,slug):
+    if Wish.objects.filter(slug=slug).exists():
+        Wish.objects.filter(slug=slug).delete()
+        return redirect('/wish')
+    else:
+        return redirect('/wish')
+
+
+def checkoutproducts(request):
+    current_user=request.user
+    checks=Cart.objects.filter(user_id=current_user.id)
+    alltotal=0
+    for i in checks:
+        alltotal += i.price*i.quantity
+    if request.method=="POST":
+       form=OrderForm(request.POST)
+       if form.is_valid():
+            detail=Order()
+            detail.fname=form.cleaned_data['fname']
+            detail.lname=form.cleaned_data['lname']
+            detail.email=form.cleaned_data['email']
+            detail.address=form.cleaned_data['address']
+            detail.phone=form.cleaned_data['phone']
+            detail.city=form.cleaned_data['city']
+            detail.save()
+
+            checks=Cart.objects.filter(user_id=current_user.id)
+            for x in checks:
+                data=OrderProducts()
+                data.user_id=current_user.id
+                data.order_id=detail.id
+                data.id=x.id
+                data.title=x.title
+                data.quantity=x.quantity
+                data.price=x.price
+                data.save()
+
+            Cart.objects.filter(user_id=current_user.id).delete()
+    form=OrderForm()
+    views={'checks':checks,'alltotal':alltotal,'form':form}
+    
+    return render(request,'checkout.html',views)
 
 #for rest api
 from .serializers import *
@@ -119,6 +249,7 @@ from rest_framework import viewsets
 class ItemViewSet(viewsets.ModelViewSet):
     queryset=Item.objects.all()
     serializer_class=ItemSerializers
+
 
     
 
