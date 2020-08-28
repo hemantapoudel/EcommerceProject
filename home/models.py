@@ -95,19 +95,6 @@ class Wish(models.Model):
     def delete_wish(self):
         return reverse("home:delete_wish",kwargs={'slug':self.slug})
 
-# class Checkout(models.Model):
-#     user =models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-#     fname=models.CharField(max_length=100)
-#     lname=models.CharField(max_length=100)
-#     email=models.EmailField(max_length=150,blank=True)
-#     address=models.CharField(max_length=200)
-#     city=models.CharField(max_length=200)
-#     phone=models.CharField(max_length=20)
-#     notes=models.TextField(blank=True)
-#     order_details=models.TextField(blank=True)
-    
-#     def __str__(self):
-#         return self.email
 
 class Order(models.Model):
     fname=models.CharField(max_length=100)
