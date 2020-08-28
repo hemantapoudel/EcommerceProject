@@ -224,7 +224,7 @@ def checkoutproducts(request):
             detail.phone=form.cleaned_data['phone']
             detail.city=form.cleaned_data['city']
             detail.save()
-
+            messages.success(request,'Order successfully registered')
             checks=Cart.objects.filter(user_id=current_user.id)
             for x in checks:
                 data=OrderProducts()
