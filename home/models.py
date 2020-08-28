@@ -70,7 +70,7 @@ class Cart(models.Model):
     description=models.TextField(blank=True)
     price=models.IntegerField(default=0)
     quantity=models.IntegerField(default=1)
-    checkout=models.BooleanField(default=False)
+  
     def __str__(self):
         return self.user.username
     
