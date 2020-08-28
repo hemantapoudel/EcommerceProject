@@ -25,6 +25,11 @@
     <!-- container -->
     <div class="container">
         <!-- row -->
+        {% if messages %}
+                    {% for message in messages%}
+                    {{message}}
+                    {% endfor %}
+                    {% endif %}
         <div class="row">
             <form method="POST">
                 {% csrf_token %}
